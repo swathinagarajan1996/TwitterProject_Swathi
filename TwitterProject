@@ -1,0 +1,119 @@
+#Program for Twitter Scrapping using Mongodb,streamlit, snscrape
+
+#Neccessary Modules Imported
+
+import snscrape.modules.twitter as sntwitter  # to scrape the twitter data
+import streamlit as st                        # for GUi
+import pandas as pd                           #for Dataframe creating
+import pymongo                                # for MongoDb connection
+from pymongo import MongoClient
+from PIL import Image
+from datetime import date
+import json
+
+#Main function
+
+def main():
+    st.title('Twitter Scraping') #Title for scraping data
+    image = (r"https://www.bestproxyreviews.com/wp-content/uploads/2020/05/Twitter-Scraper.jpg.webp")
+    st.image(image,use_column_width=True)
+    #Menus are used by streamlit in Twitter scrape
+    Menu=['Home','About','Search']
+    choice=st.sidebar.selectbox("Menu",Menu)
+
+#Menu--->Home Page
+    if choice=="Home":
+        st.write('1.This app is a Twitter Scraping web app created using Streamlit.')
+        st.write('2.It scrapes the twitter data for the given hashtag/Keyword for the given period.')
+        st.write('3.The tweets are uploaded in MongoDB and can be dowloaded as CSV or a JSON file.')
+    elif choice == "About":
+        # Info about Twitter Scrapper
+        with st.expander("Twitter Scrapper"):
+            st.write('1. Twitter Scraper will scrape the data from Public Twitter profiles.')
+            st.write ('2. It will collect the data about date, id, url, tweet content, users/tweeters,reply count, retweet count, language, source, like count and lot more in for to gather the real facts about the Tweets.')
+        #Info about Snscraper
+        with st.expander("Snscraper"):
+            st.write('''Snscrape is a scraper for social media services like *twitter, faceboook, instagram and so on*. 
+                         It scrapes **user profiles, hashtages, other tweet information** and returns the discovered items from the relavent posts/tweets.''')
+        # Info about MongoDB
+        with st.expander("Mondodb"):
+            st.write('''MongoDB is an open source document database used for storing unstrcutured data. The data is stored as JSON like documents called BSON. 
+                        It is used by developers to work esaily with real time data analystics, content management and lot of other web applications.''')
+        # Info about Stremalit
+        with st.expander("Streamlit"):
+            st.write('1. Streamlit is a awesome opensource framework used for buidling highly interactive sharable web applications in python language.')
+            st.write('2. Its easy to share machine learning and datasciecne web apps using streamlit.')
+            st.write('3. It allows the app to load the large set of datas from web for manipulation and  performing expensive computations.')
+    # Menu--->search option
+    elif choice == "Search":
+        #getting an input from the user-->how many tweets,date,limits
+        Hashtag = st.text_input("Enter the Username or Hashtag")
+        start_date = st.date_input("Enter the Start Date: ")
+        end_date = st.date_input("Enter the End Date: ")
+        limits = st.number_input("Enter the number of tweets to be fetched ", min_value=1, max_value=1000, value=100)
+
+        tweets_list1 = []
+        query = f"{Hashtag} until:{end_date} since:{start_date}"
+        for i, tweet in enumerate(sntwitter.TwitterSearchScraper(query).get_items()):
+            if i > limits:
+                break
+            else:
+                tweets_list1.append(
+                    [tweet.date, tweet.id, tweet.url, tweet.source, tweet.rawContent, tweet.user.username, tweet.lang,
+                     tweet.likeCount, tweet.retweetCount, tweet.replyCount])
+
+        Data = pd.DataFrame(tweets_list1,
+                            columns=['Datetime', 'Tweet-Id', 'URL', 'Source', 'Content', 'Username', 'Language',
+                                     'Likes', 'Retweet-Count', 'Reply-Count'])
+
+
+        show_dataframe = st.button("Show DataFrame") #to show the dataframe and button creation
+
+        if show_dataframe:
+            st.dataframe(Data)
+
+        if st.button('Upload to Database'):#to upload data into Database(Mongodb-cluster)
+            @st.cache_resource
+            def init_connection():
+                return pymongo.MongoClient(
+                    "mongodb+srv://admin:Swathi2023@clustercreation.sv3licy.mongodb.net/test")
+
+            client = init_connection()
+
+            @st.cache_data(ttl=600)
+            def get_data():
+                db = client.mydb
+                items = db.collection.find()
+                items = list(items)
+                return items
+
+            items = get_data()
+            st.success('Data uploaded successfully', icon="✅")
+
+
+        #convert the file into CSV and download button
+        Data.to_csv('Tweets Scraping.csv')
+
+        def convert_df(dataframe):
+            return dataframe.to_csv().encode('utf-8')
+
+        mycsv = convert_df(Data)
+
+        st.download_button(
+            label="Download data as CSV",
+            data=mycsv,
+            file_name='Tweets Scraping.csv',
+            mime='text/csv',
+        )
+        # convert the file into JSON and download button
+        # st.write("Download the tweet data as JSON File")
+        tweetJS = Data.to_json(default_handler=str).encode()
+        obj = json.loads(tweetJS)
+        JS = json.dumps(obj, indent=4)
+        st.download_button(
+            label="Download data as JSON",
+            data=JS,
+            file_name='Tweets Scraping as js.json',
+            mime='text/js',
+        )
+main()
