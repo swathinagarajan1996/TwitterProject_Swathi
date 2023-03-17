@@ -8,11 +8,17 @@ This app is  for Twitter Scraping by creating a web app using Streamlit. It scra
 **Required Libraries to import**
 
 •import pandas as pd
+
 •import streamlit as st
+
 •import snscrape.modules.twitter as sntwitter
+
 •import pymongo
+
 •from pymongo import MongoClient
+
 •import json
+
 •from PIL import Image
 
 
