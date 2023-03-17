@@ -7,10 +7,11 @@ This app is  for Twitter Scraping by creating a web app using Streamlit. It scra
 
 **Required Libraries**
 Python Libraries---->Snscrape, pandas,Pymongo to connect MongoDB
+
    **GUI Framework:** **
            Streamlit -Web hosting
            
-**Scraping the tweet
+**Scraping the tweet**
 
 Data are scraped using SNscrape of python library, with the help pf TweetSearchScrape() method we can scrape the Twitter data without Twitter API. The method is passed with a query conating the hashtag to be search and the search dates (From start date to end date)
 
