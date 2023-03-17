@@ -1,4 +1,4 @@
-# Twitter SCrapping
+# Twitter Scrapping
 
 Twitter Project by using Snscrape, MongoDB, Streamlit
 
