@@ -82,12 +82,15 @@ def main():
 
             @st.cache_data(ttl=600)
             def get_data():
-                db = client.mydb
-                items = db.collection.find()
-                items = list(items)
-                return items
-
-            items = get_data()
+                db = client["Twitter#Scraping"]
+                collection=db["Scraping_Collection"]
+                Data.reset_index(inplace=True)
+                Data_dict = Data.to_dict('records')
+                values = collection.insert_many(Data_dict)
+                #items = db.collection.find()
+                #items = list(items)
+                return values
+            values = get_data()
             st.success('Data uploaded successfully', icon="✅")
 
 
